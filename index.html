@@ -14,6 +14,7 @@
 
 <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
+    <canvas id="webgl-canvas" aria-hidden="true"></canvas>
     <canvas id="matrix-canvas" aria-hidden="true"></canvas>
     <div class="scan-lines" aria-hidden="true"></div>
 
@@ -38,7 +39,11 @@
             <div class="header-content">
                 <p class="greeting">Hello, I'm</p>
                 <h1><span id="name-text"></span></h1>
-                <p class="subtitle">Software Engineer • Machine Learning • Mechatronics</p>
+                <p class="subtitle">
+                    <span class="typing-prefix">&gt; </span>
+                    <span id="typing-roles"></span>
+                    <span class="typing-cursor">|</span>
+                </p>
                 <p class="tagline">Building intelligent systems at the intersection of software, data, and hardware.</p>
                 <div class="social-links" role="list" aria-label="Social media and contact links">
                     <a href="mailto:francistembo@protonmail.com" class="social-btn" role="listitem" aria-label="Send email to Francis Tembo"><span class="btn-icon" aria-hidden="true">✉</span> Email</a>
@@ -370,7 +375,22 @@
             <p class="footer-note">&copy; <span id="year"></span> • Made with passion</p>
         </footer>
     </div>
-    <script src="script.js"></script>
+
+    <!-- Three.js Import Map -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <!-- Vanilla Tilt for card effects -->
+    <script src="https://cdn.jsdelivr.net/npm/vanilla-tilt@1.8.1/dist/vanilla-tilt.min.js"></script>
+
+    <!-- Main Scripts -->
+    <script src="script.js" type="module"></script>
 </body>
 
 </html>

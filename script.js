@@ -1,3 +1,9 @@
+// Import 3D scene and utilities
+import * as THREE from 'three';
+import { CyberpunkScene } from './scene-3d.js';
+import { detectPerformanceTier, getTierConfig } from './utils/performance.js';
+import { logDeviceInfo } from './utils/device.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     // Throttle utility for performance
     function throttle(func, wait) {
@@ -28,6 +34,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check for reduced motion preference
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // ====================================================================
+    // 3D Scene - DISABLED (using 2D matrix background instead)
+    // ====================================================================
+    let scene3D = null;
+    console.log('✓ Using classic 2D matrix background (3D disabled)');
+    // ====================================================================
+
     // Typing effect for name
     const nameElement = document.getElementById('name-text');
     const fullName = 'Francis Tembo';
@@ -38,11 +51,73 @@ document.addEventListener('DOMContentLoaded', () => {
             nameElement.textContent += fullName.charAt(charIndex);
             charIndex++;
             setTimeout(typeName, 150);
+        } else {
+            // Start role typing after name is complete
+            setTimeout(() => startRoleTyping(), 500);
         }
     };
 
     // Start typing after a brief delay
     setTimeout(typeName, 300);
+
+    // ====================================================================
+    // Typing Animation for Roles
+    // ====================================================================
+    const rolesElement = document.getElementById('typing-roles');
+    const roles = [
+        'Software Engineer',
+        'Machine Learning Specialist',
+        'Data Engineer',
+        'Mechatronics Engineer',
+        'Robotics Researcher',
+        'Full-Stack Developer'
+    ];
+
+    let currentRoleIndex = 0;
+    let currentCharIndex = 0;
+    let isDeleting = false;
+    let typingSpeed = 100;
+
+    function typeRole() {
+        const currentRole = roles[currentRoleIndex];
+
+        if (isDeleting) {
+            // Delete character
+            rolesElement.textContent = currentRole.substring(0, currentCharIndex - 1);
+            currentCharIndex--;
+            typingSpeed = 50; // Faster when deleting
+        } else {
+            // Add character
+            rolesElement.textContent = currentRole.substring(0, currentCharIndex + 1);
+            currentCharIndex++;
+            typingSpeed = 100; // Normal typing speed
+        }
+
+        // Check if word is complete
+        if (!isDeleting && currentCharIndex === currentRole.length) {
+            // Pause at end of word
+            typingSpeed = 2000;
+            isDeleting = true;
+        } else if (isDeleting && currentCharIndex === 0) {
+            // Move to next role
+            isDeleting = false;
+            currentRoleIndex = (currentRoleIndex + 1) % roles.length;
+            typingSpeed = 500; // Pause before next word
+        }
+
+        setTimeout(typeRole, typingSpeed);
+    }
+
+    function startRoleTyping() {
+        if (rolesElement && !prefersReducedMotion) {
+            typeRole();
+            console.log('✓ Role typing animation started');
+        } else if (rolesElement) {
+            // Fallback: just show first role if motion is reduced
+            rolesElement.textContent = roles[0];
+        }
+    }
+    // ====================================================================
 
     // Dynamic Year
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -443,4 +518,123 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // ====================================================================
+    // Initialize Vanilla Tilt on Cards
+    // ====================================================================
+    function initCardTilt() {
+        // Don't initialize tilt on mobile or if motion is reduced
+        if (window.innerWidth < 768 || prefersReducedMotion) {
+            console.log('Skipping card tilt (mobile or reduced motion)');
+            return;
+        }
+
+        // Tilt options
+        const tiltOptions = {
+            max: 15,              // Maximum tilt rotation (degrees)
+            perspective: 1000,    // Transform perspective
+            scale: 1.05,          // Scale on hover
+            speed: 400,           // Speed of transition
+            glare: false,         // We have custom glare effect in CSS
+            'max-glare': 0.5,
+            gyroscope: false,     // Disable gyroscope on mobile
+            reset: true,          // Reset on mouse leave
+            'reset-to-start': false,
+            easing: "cubic-bezier(.03,.98,.52,.99)"
+        };
+
+        // Apply tilt to experience cards
+        const experienceCards = document.querySelectorAll('.experience-card');
+        experienceCards.forEach((card, index) => {
+            VanillaTilt.init(card, tiltOptions);
+
+            // Update CSS custom properties for glare effect
+            card.addEventListener('tiltChange', (e) => {
+                const { percentageX, percentageY } = e.detail;
+                card.style.setProperty('--mouse-x', `${percentageX}%`);
+                card.style.setProperty('--mouse-y', `${percentageY}%`);
+            });
+
+            console.log(`✓ Tilt initialized on experience card ${index + 1}`);
+        });
+
+        // Apply tilt to project cards
+        const projectCards = document.querySelectorAll('.project-card');
+        projectCards.forEach((card, index) => {
+            VanillaTilt.init(card, tiltOptions);
+
+            // Update CSS custom properties for glare effect
+            card.addEventListener('tiltChange', (e) => {
+                const { percentageX, percentageY } = e.detail;
+                card.style.setProperty('--mouse-x', `${percentageX}%`);
+                card.style.setProperty('--mouse-y', `${percentageY}%`);
+            });
+
+            console.log(`✓ Tilt initialized on project card ${index + 1}`);
+        });
+
+        // Apply tilt to skill tags (subtle effect)
+        const skillTags = document.querySelectorAll('.skill-tag');
+        const subtleTiltOptions = {
+            ...tiltOptions,
+            max: 8,
+            scale: 1.1
+        };
+
+        skillTags.forEach((tag, index) => {
+            VanillaTilt.init(tag, subtleTiltOptions);
+        });
+
+        console.log(`✓ Tilt effect initialized on ${experienceCards.length + projectCards.length} cards and ${skillTags.length} skill tags`);
+    }
+
+    // Initialize tilt after a short delay (ensure DOM is fully ready)
+    setTimeout(initCardTilt, 500);
+    // ====================================================================
+
+    // ====================================================================
+    // 3D Hero Name Text Effect
+    // ====================================================================
+    const heroName = document.querySelector('header h1');
+
+    if (heroName && !prefersReducedMotion) {
+        let heroRotX = 0;
+        let heroRotY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            // Calculate rotation based on mouse position
+            const x = (e.clientX / window.innerWidth - 0.5) * 2;
+            const y = (e.clientY / window.innerHeight - 0.5) * 2;
+
+            // Target rotation values - reduced for readability
+            const targetRotY = x * 3; // degrees (reduced from 10 to 3)
+            const targetRotX = -y * 3; // degrees (reduced from 10 to 3)
+
+            // Smooth lerp animation
+            function animateHeroText() {
+                heroRotY += (targetRotY - heroRotY) * 0.1;
+                heroRotX += (targetRotX - heroRotX) * 0.1;
+
+                heroName.style.transform = `perspective(1000px) rotateX(${heroRotX}deg) rotateY(${heroRotY}deg)`;
+
+                // Continue animation if difference is significant
+                if (Math.abs(targetRotY - heroRotY) > 0.1 || Math.abs(targetRotX - heroRotX) > 0.1) {
+                    requestAnimationFrame(animateHeroText);
+                }
+            }
+
+            animateHeroText();
+        });
+
+        console.log('✓ 3D hero name text effect initialized');
+    }
+    // ====================================================================
+
+    // ====================================================================
+    // Easter Eggs - DISABLED (3D scene not active)
+    // ====================================================================
+    console.log('Easter eggs disabled (3D scene not active)');
+    // ====================================================================
 });
+
+

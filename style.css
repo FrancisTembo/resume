@@ -27,8 +27,8 @@ body {
   font-family: var(--font-main);
   background-color: var(--bg-color);
   background-image:
-    radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(0, 255, 255, 0.02) 0%, transparent 50%);
+    radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(0, 255, 255, 0.04) 0%, transparent 50%);
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
@@ -57,7 +57,12 @@ body {
   outline-offset: 2px;
 }
 
-/* Matrix Canvas Background */
+/* WebGL 3D Canvas Background - HIDDEN */
+#webgl-canvas {
+  display: none; /* 3D disabled */
+}
+
+/* Matrix Canvas Background - Professional */
 #matrix-canvas {
   position: fixed;
   top: 0;
@@ -65,10 +70,11 @@ body {
   width: 100%;
   height: 100%;
   z-index: -2;
-  opacity: 0.08;
+  opacity: 0.12; /* Professional visibility */
+  pointer-events: none;
 }
 
-/* Scan Lines Effect - More Subtle */
+/* Scan Lines Effect - Professional */
 .scan-lines {
   position: fixed;
   top: 0;
@@ -78,10 +84,11 @@ body {
   z-index: -1;
   pointer-events: none;
   background: repeating-linear-gradient(0deg,
-      rgba(0, 0, 0, 0.05),
-      rgba(0, 0, 0, 0.05) 1px,
+      rgba(0, 0, 0, 0.08),
+      rgba(0, 0, 0, 0.08) 1px,
       transparent 1px,
       transparent 3px);
+  opacity: 0.5; /* Subtle scan lines */
 }
 
 /* Navigation */
@@ -270,6 +277,15 @@ header h1 {
   position: relative;
   display: inline-block;
   animation: glitch-text 5s infinite;
+  transform-style: preserve-3d;
+  transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+  transition: transform 0.3s ease;
+  text-shadow:
+    1px 1px 0 rgba(0, 255, 136, 0.05),
+    2px 2px 0 rgba(0, 255, 136, 0.04),
+    3px 3px 0 rgba(0, 255, 136, 0.03),
+    4px 4px 0 rgba(0, 255, 136, 0.02),
+    5px 5px 15px rgba(0, 255, 136, 0.2);
 }
 
 header h1::before {
@@ -332,6 +348,35 @@ header .subtitle {
   font-weight: 400;
   text-align: center;
   line-height: 1.5;
+  min-height: 2em; /* Prevent layout shift during typing */
+}
+
+/* Typing animation elements */
+.typing-prefix {
+  color: var(--accent-color);
+  font-weight: 600;
+  text-shadow: 0 0 10px var(--accent-color);
+}
+
+#typing-roles {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.typing-cursor {
+  color: var(--accent-color);
+  font-weight: 400;
+  animation: blink-cursor 1s step-end infinite;
+  margin-left: 2px;
+}
+
+@keyframes blink-cursor {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
 }
 
 .greeting {
@@ -504,6 +549,14 @@ header .subtitle {
   margin-left: 0.25rem;
 }
 
+/* About section */
+.about-content {
+  background: rgba(12, 12, 12, 0.98);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  backdrop-filter: blur(10px);
+}
+
 /* Section Headings */
 h2 {
   font-size: 1.6rem;
@@ -516,6 +569,21 @@ h2 {
   letter-spacing: -0.01em;
   position: relative;
   padding-bottom: 0.75rem;
+  transform-style: preserve-3d;
+  text-shadow:
+    1px 1px 0 rgba(0, 255, 136, 0.08),
+    2px 2px 0 rgba(0, 255, 136, 0.06),
+    3px 3px 0 rgba(0, 255, 136, 0.04),
+    4px 4px 8px rgba(0, 255, 136, 0.15);
+  transition: transform 0.3s ease, text-shadow 0.3s ease;
+}
+
+h2:hover {
+  transform: translateZ(5px);
+  text-shadow:
+    2px 2px 0 rgba(0, 255, 136, 0.1),
+    4px 4px 0 rgba(0, 255, 136, 0.08),
+    6px 6px 12px rgba(0, 255, 136, 0.2);
 }
 
 h2::before {
@@ -536,12 +604,15 @@ h2::after {
 
 /* Experience Cards */
 .experience-card {
-  background: transparent;
+  background: rgba(12, 12, 12, 0.98); /* Nearly opaque for readability */
+  backdrop-filter: blur(10px); /* Blur background behind card */
   border-left: 1px solid var(--surface-hover);
   padding: 1.25rem 1.25rem 1.25rem 1.75rem;
   margin-bottom: 1.5rem;
   transition: var(--transition);
   position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .experience-card::before {
@@ -593,6 +664,8 @@ h2::after {
   margin-bottom: 0.75rem;
   flex-wrap: wrap;
   gap: 0.75rem;
+  transform: translateZ(20px);
+  position: relative;
 }
 
 .role {
@@ -600,12 +673,14 @@ h2::after {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.01em;
+  transform: translateZ(25px);
 }
 
 .company {
   color: var(--accent-color);
   font-weight: 400;
   font-size: 1.05rem;
+  transform: translateZ(25px);
 }
 
 .date {
@@ -635,11 +710,41 @@ h2::after {
   left: 0;
   color: var(--accent-dim);
   font-weight: 700;
+  transform: translateZ(15px);
+}
+
+/* Card glare effect */
+.experience-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(0, 255, 136, 0.15) 0%,
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  transform: translateZ(30px);
+  border-radius: var(--border-radius);
+}
+
+.experience-card:hover::after {
+  opacity: 1;
 }
 
 /* Education */
 .education-item {
   margin-bottom: 2rem;
+  background: rgba(12, 12, 12, 0.98); /* Nearly opaque for readability */
+  backdrop-filter: blur(10px);
+  padding: 1.25rem;
+  border-radius: var(--border-radius);
+  border-left: 1px solid var(--surface-hover);
 }
 
 .degree {
@@ -661,6 +766,10 @@ h2::after {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 2rem;
+  background: rgba(12, 12, 12, 0.95); /* Nearly opaque for readability */
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+  backdrop-filter: blur(10px);
 }
 
 .skill-category h3 {
@@ -687,14 +796,35 @@ h2::after {
   transition: var(--transition);
   border: 1px solid var(--surface-hover);
   font-weight: 500;
+  transform-style: preserve-3d;
+  will-change: transform;
+  position: relative;
 }
 
 .skill-tag:hover {
   color: var(--accent-color);
   border-color: var(--accent-color);
   background: rgba(0, 255, 136, 0.05);
-  box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
-  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.3), 0 10px 25px rgba(0, 0, 0, 0.3);
+  transform: translateY(-4px) translateZ(15px) rotateX(5deg);
+}
+
+/* Skill tag glowing depth shadow */
+.skill-tag::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  border-radius: inherit;
+  filter: blur(10px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  transform: translateZ(-10px);
+}
+
+.skill-tag:hover::before {
+  opacity: 0.6;
 }
 
 /* ============================================
@@ -709,7 +839,8 @@ h2::after {
 }
 
 .project-card {
-  background: transparent;
+  background: rgba(12, 12, 12, 0.98); /* Nearly opaque for readability */
+  backdrop-filter: blur(10px); /* Blur background behind card */
   border: 1px solid var(--surface-hover);
   padding: 1.75rem;
   border-radius: var(--border-radius);
@@ -719,6 +850,8 @@ h2::after {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .project-card::before {
@@ -760,6 +893,7 @@ h2::after {
   margin: 0;
   flex: 1;
   min-width: 200px;
+  transform: translateZ(20px);
 }
 
 .project-links {
@@ -799,6 +933,31 @@ h2::after {
   line-height: 1.6;
   margin: 0;
   flex-grow: 1;
+  transform: translateZ(10px);
+}
+
+/* Project card glare effect */
+.project-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(0, 255, 136, 0.12) 0%,
+    transparent 50%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  transform: translateZ(25px);
+  border-radius: var(--border-radius);
+}
+
+.project-card:hover::after {
+  opacity: 1;
 }
 
 .tech-stack {
@@ -854,6 +1013,10 @@ footer .footer-note {
 .contact-content {
   max-width: 550px;
   margin: 0 auto;
+  background: rgba(12, 12, 12, 0.98);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  backdrop-filter: blur(10px);
 }
 
 .contact-content p {
